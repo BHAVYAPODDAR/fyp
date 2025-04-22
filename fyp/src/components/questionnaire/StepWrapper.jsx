@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   Button,
   Stepper,
@@ -8,9 +8,13 @@ import {
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 
+// Import your step components
 import Step1_PersonalInfo from "./Step1_PersonalInfo";
 import Step2_FamilyInfo from "./Step2_FamilyInfo";
-// ... other steps later
+import Step3_AssetsInfo from "./Step3_Assets";
+import Step4_Distribution from "./Step4/Step4_Distribution";
+import Step5_SpecialRequests from "./Step5_Special";
+import FinalReview from "./FinalReview";
 
 const steps = [
   "Personal Info",
@@ -24,7 +28,11 @@ const steps = [
 const stepComponents = [
   Step1_PersonalInfo,
   Step2_FamilyInfo,
-  // ...rest later
+  Step3_AssetsInfo,
+  Step4_Distribution,
+  Step5_SpecialRequests,
+  FinalReview,
+  // ...rest
 ];
 
 const StepWrapper = () => {
@@ -32,12 +40,17 @@ const StepWrapper = () => {
   const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const stepRef = useRef(null); // Ref to access step component functions like validate()
 
-  const CurrentStepComponent = stepComponents[activeStep];
+  const updateFormData = useCallback((newData) => {
+    setFormData((prev) => ({ ...prev, ...newData }));
+  }, []);
 
   const handleNext = async () => {
-    const isValid = await CurrentStepComponent.validate?.();
-    if (!isValid) return;
+    if (stepRef.current?.validate) {
+      const isValid = await stepRef.current.validate();
+      if (!isValid) return;
+    }
 
     setLoading(true);
     setTimeout(() => {
@@ -48,9 +61,7 @@ const StepWrapper = () => {
 
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
-  const updateFormData = (newData) => {
-    setFormData((prev) => ({ ...prev, ...newData }));
-  };
+  const CurrentStepComponent = stepComponents[activeStep];
 
   return (
     <div className="w-full max-w-2xl mx-auto px-4 py-6 bg-white rounded-2xl shadow-xl">
@@ -72,6 +83,7 @@ const StepWrapper = () => {
             transition={{ duration: 0.4 }}
           >
             <CurrentStepComponent
+              ref={stepRef}
               formData={formData}
               updateFormData={updateFormData}
               errors={errors}
