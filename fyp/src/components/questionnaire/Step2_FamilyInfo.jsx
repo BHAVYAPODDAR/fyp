@@ -1,149 +1,248 @@
-import React, { useEffect, useState } from "react";
+// import React, { useState, useEffect } from "react";
+
+// import {
+//   TextField,
+//   Typography,
+//   MenuItem,
+//   Button,
+//   Card,
+//   CardContent,
+//   IconButton,
+// } from "@mui/material";
+// import { Add, Delete } from "@mui/icons-material";
+
+// const Step2_FamilyInfo = ({ formData, updateFormData, errors, setErrors }) => {
+//   const [hasChildren, setHasChildren] = useState(formData.hasChildren || "No");
+//   const [children, setChildren] = useState(formData.children || []);
+
+//   useEffect(() => {
+//     if (hasChildren === "No") {
+//       setChildren([]);
+//       updateFormData({ hasChildren: "No", children: [] });
+//     } else {
+//       updateFormData({ hasChildren: "Yes", children });
+//     }
+//   }, [hasChildren, children, updateFormData]);
+
+//   const handleAddChild = () => {
+//     setChildren((prev) => [...prev, { name: "", age: "", relation: "" }]);
+//   };
+
+//   const handleRemoveChild = (index) => {
+//     const updated = [...children];
+//     updated.splice(index, 1);
+//     setChildren(updated);
+//   };
+
+//   const handleChange = (index, field, value) => {
+//     const updated = [...children];
+//     updated[index][field] = value;
+//     setChildren(updated);
+//   };
+
+//   return (
+//     <div className="space-y-6">
+//       <Typography variant="h6" className="text-gray-800 font-semibold">
+//         Family Information
+//       </Typography>
+
+//       <TextField
+//         select
+//         label="Do you have children?"
+//         fullWidth
+//         value={hasChildren}
+//         onChange={(e) => setHasChildren(e.target.value)}
+//       >
+//         <MenuItem value="Yes">Yes</MenuItem>
+//         <MenuItem value="No">No</MenuItem>
+//       </TextField>
+
+//       {hasChildren === "Yes" && (
+//         <>
+//           {children.map((child, index) => (
+//             <Card key={index} className="bg-gray-50 rounded-xl shadow-sm">
+//               <CardContent className="space-y-4">
+//                 <div className="flex justify-between items-center">
+//                   <Typography variant="subtitle1" className="font-medium">
+//                     Child {index + 1}
+//                   </Typography>
+//                   <IconButton
+//                     onClick={() => handleRemoveChild(index)}
+//                     color="error"
+//                   >
+//                     <Delete />
+//                   </IconButton>
+//                 </div>
+//                 <TextField
+//                   label="Name"
+//                   fullWidth
+//                   value={child.name}
+//                   onChange={(e) => handleChange(index, "name", e.target.value)}
+//                 />
+//                 <TextField
+//                   label="Age"
+//                   fullWidth
+//                   type="number"
+//                   value={child.age}
+//                   onChange={(e) => handleChange(index, "age", e.target.value)}
+//                 />
+//                 <TextField
+//                   label="Relation (e.g., Son, Daughter)"
+//                   fullWidth
+//                   value={child.relation}
+//                   onChange={(e) =>
+//                     handleChange(index, "relation", e.target.value)
+//                   }
+//                 />
+//               </CardContent>
+//             </Card>
+//           ))}
+
+//           <Button
+//             variant="outlined"
+//             startIcon={<Add />}
+//             onClick={handleAddChild}
+//           >
+//             Add Child
+//           </Button>
+//         </>
+//       )}
+//     </div>
+//   );
+// };
+
+// // ✅ Updated Validation
+// Step2_FamilyInfo.validate = async (formData) => {
+//   if (formData.hasChildren === "Yes") {
+//     if (!formData.children || formData.children.length === 0) return false;
+//     for (let child of formData.children) {
+//       if (!child.name || !child.age || !child.relation) return false;
+//     }
+//   }
+//   return true;
+// };
+
+// export default Step2_FamilyInfo;
+
+import React, { useState, useEffect } from "react";
 import {
   TextField,
-  MenuItem,
   Typography,
-  IconButton,
+  MenuItem,
   Button,
-  Tooltip,
+  Card,
+  CardContent,
+  IconButton,
 } from "@mui/material";
 import { Add, Delete } from "@mui/icons-material";
 
+const RELATIONSHIP_OPTIONS = [
+  "Spouse",
+  "Father",
+  "Mother",
+  "Son",
+  "Daughter",
+  "Brother",
+  "Sister",
+  "Uncle",
+  "Aunt",
+  "Other",
+];
+
 const Step2_FamilyInfo = ({ formData, updateFormData, errors, setErrors }) => {
-  const [localData, setLocalData] = useState({
-    maritalStatus: formData.maritalStatus || "",
-    spouseName: formData.spouseName || "",
-    children: formData.children || [{ name: "", age: "" }],
-  });
+  const [members, setMembers] = useState(formData.familyMembers || []);
 
   useEffect(() => {
-    updateFormData(localData);
-  }, [localData]);
+    updateFormData({ familyMembers: members });
+  }, [members]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setLocalData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
-  };
-
-  const handleChildChange = (index, field, value) => {
-    const updated = [...localData.children];
+  const handleChange = (index, field, value) => {
+    const updated = [...members];
     updated[index][field] = value;
-    setLocalData((prev) => ({ ...prev, children: updated }));
+    setMembers(updated);
   };
 
-  const addChild = () => {
-    setLocalData((prev) => ({
-      ...prev,
-      children: [...prev.children, { name: "", age: "" }],
-    }));
+  const handleAddMember = () => {
+    setMembers((prev) => [...prev, { name: "", age: "", relation: "" }]);
   };
 
-  const removeChild = (index) => {
-    const updated = [...localData.children];
+  const handleRemoveMember = (index) => {
+    const updated = [...members];
     updated.splice(index, 1);
-    setLocalData((prev) => ({ ...prev, children: updated }));
+    setMembers(updated);
   };
 
-  // Attach this validation to be triggered from StepWrapper
-  Step2_FamilyInfo.validate = async () => {
-    const newErrors = {};
-    if (!localData.maritalStatus)
-      newErrors.maritalStatus = "Please select your marital status.";
-    if (localData.maritalStatus === "Married" && !localData.spouseName.trim()) {
-      newErrors.spouseName = "Please enter your spouse's name.";
-    }
-
-    const childErrors = localData.children.map((child) => {
-      const err = {};
-      if (!child.name.trim()) err.name = "Child's name required.";
-      if (!child.age.trim()) err.age = "Age required.";
-      return err;
-    });
-
-    const hasChildErrors = childErrors.some(
-      (child) => Object.keys(child).length > 0
-    );
-    if (hasChildErrors) newErrors.children = childErrors;
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
+  const renderField = (label, type, value, onChange) => (
+    <TextField
+      label={label}
+      type={type}
+      fullWidth
+      value={value}
+      onChange={onChange}
+    />
+  );
 
   return (
     <div className="space-y-6">
-      <Typography variant="h6" className="text-xl font-semibold">
-        👨‍👩‍👧‍👦 Family Information
+      <Typography variant="h6" className="text-gray-800 font-semibold">
+        Family Information
       </Typography>
 
-      <TextField
-        select
-        fullWidth
-        name="maritalStatus"
-        label="💍 Marital Status"
-        value={localData.maritalStatus}
-        onChange={handleChange}
-        error={!!errors.maritalStatus}
-        helperText={errors.maritalStatus}
-      >
-        <MenuItem value="">Select</MenuItem>
-        <MenuItem value="Single">Single</MenuItem>
-        <MenuItem value="Married">Married</MenuItem>
-        <MenuItem value="Widowed">Widowed</MenuItem>
-        <MenuItem value="Divorced">Divorced</MenuItem>
-      </TextField>
+      {members.map((member, index) => (
+        <Card key={index} className="bg-gray-50 rounded-xl shadow-sm">
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <Typography variant="subtitle1" className="font-medium">
+                Member {index + 1}
+              </Typography>
+              <IconButton
+                onClick={() => handleRemoveMember(index)}
+                color="error"
+              >
+                <Delete />
+              </IconButton>
+            </div>
 
-      {localData.maritalStatus === "Married" && (
-        <TextField
-          fullWidth
-          name="spouseName"
-          label="🤝 Spouse's Full Name"
-          value={localData.spouseName}
-          onChange={handleChange}
-          error={!!errors.spouseName}
-          helperText={errors.spouseName}
-        />
-      )}
-
-      <div className="space-y-2">
-        <Typography className="text-lg font-medium">
-          👶 Children Information
-        </Typography>
-
-        {localData.children.map((child, index) => (
-          <div key={index} className="flex gap-4 items-center w-full">
-            <TextField
-              label="👦 Name"
-              value={child.name}
-              onChange={(e) => handleChildChange(index, "name", e.target.value)}
-              error={!!(errors.children && errors.children[index]?.name)}
-              helperText={errors.children && errors.children[index]?.name}
-              fullWidth
-            />
-            <TextField
-              label="🎂 Age"
-              value={child.age}
-              onChange={(e) => handleChildChange(index, "age", e.target.value)}
-              error={!!(errors.children && errors.children[index]?.age)}
-              helperText={errors.children && errors.children[index]?.age}
-              fullWidth
-            />
-            {localData.children.length > 1 && (
-              <Tooltip title="Remove child">
-                <IconButton onClick={() => removeChild(index)}>
-                  <Delete />
-                </IconButton>
-              </Tooltip>
+            {renderField("Full Name", "text", member.name, (e) =>
+              handleChange(index, "name", e.target.value)
             )}
-          </div>
-        ))}
 
-        <Button variant="outlined" startIcon={<Add />} onClick={addChild}>
-          Add Child
-        </Button>
-      </div>
+            {renderField("Age", "number", member.age, (e) =>
+              handleChange(index, "age", e.target.value)
+            )}
+
+            <TextField
+              select
+              label="Relation"
+              fullWidth
+              value={member.relation}
+              onChange={(e) => handleChange(index, "relation", e.target.value)}
+            >
+              {RELATIONSHIP_OPTIONS.map((option, i) => (
+                <MenuItem key={i} value={option}>
+                  {option}
+                </MenuItem>
+              ))}
+            </TextField>
+          </CardContent>
+        </Card>
+      ))}
+
+      <Button variant="outlined" startIcon={<Add />} onClick={handleAddMember}>
+        Add Family Member
+      </Button>
     </div>
   );
+};
+
+// ✅ Validation function
+Step2_FamilyInfo.validate = async (formData) => {
+  if (!formData.familyMembers || formData.familyMembers.length === 0)
+    return false;
+  for (let member of formData.familyMembers) {
+    if (!member.name || !member.age || !member.relation) return false;
+  }
+  return true;
 };
 
 export default Step2_FamilyInfo;
