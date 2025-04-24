@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "./Login_Signup/Login";
 import Signup from "./Login_Signup/Signup";
 import StepWrapper from "./components/questionnaire/StepWrapper";
+import Dashboard from "./Dashboard/Dasboard";
 import "./App.css";
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
         <Route path="/questions" element={<StepWrapper />} />
         <Route path="/Login" element={<Login />} />
         <Route path="/SignUp" element={<Signup />} />
+        <Route path="/Dashboard" element={<Dashboard />} />
       </Routes>
     </div>
   );

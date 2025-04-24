@@ -6,119 +6,48 @@ import {
   Divider,
   IconButton,
   Box,
-  Grid,
 } from "@mui/material";
 import { Edit, CheckCircle, Warning } from "@mui/icons-material";
+import axios from "axios";
 
 const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
   const {
     fullName,
     dob,
+    gender,
+    nationality,
     familyMembers,
     assets,
     distributions,
     specialRequests,
   } = formData;
 
-  const handleFinalSubmit = () => {
-    alert("Will successfully created!");
-  };
+  const handleFinalSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token"); // make sure token is stored at login
 
-  const safeToString = (data, visited = new WeakSet()) => {
-    if (data === null || data === undefined) {
-      return "No data available";
+      const response = await axios.post(
+        "http://localhost:5000/api/users/questionnaire",
+        { questionnaire: formData }, // posting the entire formData object
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      alert("✅ Will successfully created!");
+      console.log(response.data); // optional: for debugging or toast
+    } catch (error) {
+      console.error(
+        "❌ Error submitting will:",
+        error.response?.data || error.message
+      );
+      alert("Failed to submit the Will. Please try again.");
     }
-
-    if (typeof data !== "object") {
-      return String(data);
-    }
-
-    if (visited.has(data)) {
-      return "[Circular]";
-    }
-
-    visited.add(data);
-
-    if (Array.isArray(data)) {
-      return data.map((item) => safeToString(item, visited)).join(", ");
-    }
-
-    return Object.keys(data)
-      .map((key) => {
-        const value = data[key];
-        return `${key}: ${safeToString(value, visited)}`;
-      })
-      .join(", ");
   };
 
-  const renderFamilyMembers = () => {
-    return familyMembers && familyMembers.length > 0 ? (
-      familyMembers.map((member, index) => (
-        <Typography key={index} variant="body1" className="text-gray-600 mb-2">
-          <strong>Name: </strong>
-          {member.name} | <strong>Relationship: </strong>
-          {member.relationship}
-        </Typography>
-      ))
-    ) : (
-      <Typography variant="body1" color="textSecondary">
-        No family members added
-      </Typography>
-    );
-  };
-
-  const renderAssets = () => {
-    return assets && assets.length > 0 ? (
-      assets.map((asset, index) => (
-        <Typography key={index} variant="body1" className="text-gray-600 mb-2">
-          <strong>Name: </strong>
-          {asset.name} | <strong>Type: </strong>
-          {asset.type} | <strong>Value: </strong>
-          {asset.value}
-        </Typography>
-      ))
-    ) : (
-      <Typography variant="body1" color="textSecondary">
-        No assets added
-      </Typography>
-    );
-  };
-
-  const renderDistributions = () => {
-    return distributions && distributions.length > 0 ? (
-      distributions.map((dist, index) => (
-        <Typography key={index} variant="body1" className="text-gray-600 mb-2">
-          <strong>Beneficiary: </strong>
-          {dist.beneficiary} | <strong>Asset: </strong>
-          {dist.asset} | <strong>Share: </strong>
-          {dist.share}
-        </Typography>
-      ))
-    ) : (
-      <Typography variant="body1" color="textSecondary">
-        No distributions set
-      </Typography>
-    );
-  };
-
-  const renderSpecialRequests = () => {
-    return specialRequests && specialRequests.length > 0 ? (
-      specialRequests.map((request, index) => (
-        <Typography key={index} variant="body1" className="text-gray-600 mb-2">
-          <strong>Gift Name: </strong>
-          {request.giftName} | <strong>Type: </strong>
-          {request.type} | <strong>Message: </strong>
-          {request.message || "No message"}
-        </Typography>
-      ))
-    ) : (
-      <Typography variant="body1" color="textSecondary">
-        No special requests added
-      </Typography>
-    );
-  };
-
-  const renderSectionSummary = (title, content) => (
+  const renderSectionSummary = (title, dataArray, editStep, formatter) => (
     <Paper elevation={3} className="p-6 shadow-lg rounded-xl bg-gray-50 mb-4">
       <Typography variant="h6" className="font-bold text-gray-700 mb-4">
         {title}
@@ -131,7 +60,7 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
         className="mb-4"
       >
         <div className="flex items-center">
-          <IconButton color="primary" onClick={() => goBackToStep(title)}>
+          <IconButton color="primary" onClick={() => goBackToStep(editStep)}>
             <Edit />
           </IconButton>
           <Typography variant="body2" color="textSecondary">
@@ -139,17 +68,33 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
           </Typography>
         </div>
         <div className="flex items-center">
-          {content ? (
+          {dataArray && dataArray.length > 0 ? (
             <CheckCircle color="primary" />
           ) : (
             <Warning color="error" />
           )}
           <Typography variant="body2" color="textSecondary" className="ml-2">
-            {content ? "Completed" : "Incomplete"}
+            {dataArray && dataArray.length > 0 ? "Completed" : "Incomplete"}
           </Typography>
         </div>
       </Box>
-      <Box>{content}</Box>
+      {dataArray && dataArray.length > 0 ? (
+        <Box>
+          {dataArray.map((item, index) => (
+            <Typography
+              key={`${editStep}-${index}`} // ✅ unique key for each item
+              variant="body1"
+              className="text-gray-600 mb-2"
+            >
+              {formatter(item)}
+            </Typography>
+          ))}
+        </Box>
+      ) : (
+        <Typography variant="body1" color="textSecondary">
+          No information available.
+        </Typography>
+      )}
     </Paper>
   );
 
@@ -162,22 +107,99 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
         Final Review of Your Will
       </Typography>
 
-      {/* Personal Details Section */}
-      {renderSectionSummary("Personal Details", `${fullName}, ${dob}`)}
+      {/* Personal Details */}
+      <Paper elevation={3} className="p-6 shadow-lg rounded-xl bg-gray-50 mb-4">
+        <Typography variant="h6" className="font-bold text-gray-700 mb-4">
+          Personal Details
+        </Typography>
+        <Divider className="mb-4" />
+        <Typography variant="body1" className="text-gray-600 mb-2">
+          <strong>Name:</strong> {fullName}
+        </Typography>
+        <Typography variant="body1" className="text-gray-600 mb-2">
+          <strong>DOB:</strong> {dob}
+        </Typography>
+        <Typography variant="body1" className="text-gray-600 mb-2">
+          <strong>Gender:</strong> {gender}
+        </Typography>
+        <Typography variant="body1" className="text-gray-600 mb-2">
+          <strong>Nationality:</strong> {nationality}
+        </Typography>
+      </Paper>
 
-      {/* Family Information Section */}
-      {renderSectionSummary("Family Information", renderFamilyMembers())}
+      {/* Family Info */}
+      {renderSectionSummary(
+        "Family Information",
+        familyMembers,
+        "familyInformation",
+        (member) =>
+          `Name: ${member.name} | Relationship: ${member.relation} | Age: ${member.age}`
+      )}
 
-      {/* Assets Section */}
-      {renderSectionSummary("Assets", renderAssets())}
+      {/* Assets */}
+      <h3 className="text-lg font-semibold mb-2">Assets</h3>
+      {[
+        {
+          label: "Bank Accounts",
+          key: "bankAccounts",
+          getSummary: (a) =>
+            `Bank: ${a.bankName} | Type: ${a.accountType} | Value: ${a.value}`,
+        },
+        {
+          label: "Real Estate",
+          key: "realEstate",
+          getSummary: (a) =>
+            `Type: ${a.propertyType} | Location: ${a.location} | Value: ${a.value}`,
+        },
+        {
+          label: "Jewelry",
+          key: "jewelry",
+          getSummary: (a) =>
+            `Desc: ${a.description} | Karat: ${a.karat} | Weight: ${a.weight} | Value: ${a.value}`,
+        },
+        {
+          label: "Stocks",
+          key: "stocks",
+          getSummary: (a) =>
+            `Broker: ${a.brokerName} | Shares: ${a.numberOfShares} | Value: ${a.value}`,
+        },
+        {
+          label: "Digital Assets",
+          key: "digitalAssets",
+          getSummary: (a) =>
+            `Platform: ${a.platform} | Type: ${a.assetType} | Value: ${a.value}`,
+        },
+        {
+          label: "Other Assets",
+          key: "otherAssets",
+          getSummary: (a) =>
+            `Description: ${a.description} | Value: ${a.value}`,
+        },
+      ].map(({ label, key, getSummary }) =>
+        renderSectionSummary(label, formData[key] || [], key, getSummary)
+      )}
 
-      {/* Distributions Section */}
-      {renderSectionSummary("Distributions", renderDistributions())}
+      {/* Distributions */}
+      {renderSectionSummary(
+        "Distributions",
+        distributions,
+        "distributions",
+        (dist) =>
+          `Beneficiary: ${dist.beneficiary} | Asset: ${dist.asset} | Share: ${dist.share}`
+      )}
 
-      {/* Special Requests Section */}
-      {renderSectionSummary("Special Requests", renderSpecialRequests())}
+      {/* Special Requests */}
+      {renderSectionSummary(
+        "Special Requests",
+        specialRequests,
+        "specialRequests",
+        (req) =>
+          `Gift Name: ${req.giftName} | Type: ${req.type} | Message: ${
+            req.message || "No message"
+          }`
+      )}
 
-      {/* Confirmation Section */}
+      {/* Submit */}
       <Box className="space-y-4 mt-8">
         <Typography variant="h6" className="font-semibold text-gray-800">
           Confirm All Information
@@ -197,7 +219,7 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
         </Button>
       </Box>
 
-      {/* Download PDF Option */}
+      {/* PDF */}
       <Box className="space-y-4 mt-8">
         <Typography variant="h6" className="font-semibold text-gray-800">
           Download a PDF of Your Will
