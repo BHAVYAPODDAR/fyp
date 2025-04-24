@@ -122,7 +122,7 @@ exports.addQuestionnaireEntry = async (req, res) => {
 
 exports.deleteQuestionnaireEntry = async (req, res) => {
   try {
-    const { timestamp } = req.body; // string timestamp
+    const { timestamp } = req.params; // string timestamp
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });

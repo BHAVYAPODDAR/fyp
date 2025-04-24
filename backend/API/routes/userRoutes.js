@@ -25,7 +25,7 @@ router.get("/check-cid", auth, checkCid);
 router.post("/questionnaire", auth, addQuestionnaireEntry);
 router.get("/questionnaire", auth, getMyQuestionnaire);
 router.get("/all-cids", auth, getMyCidValues);
-router.delete("/questionnaire", auth, deleteQuestionnaireEntry);
+router.delete("/questionnaire/:timestamp", auth, deleteQuestionnaireEntry);
 router.post("/verify-password", auth, verifyPassword);
 
 module.exports = router;
