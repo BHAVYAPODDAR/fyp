@@ -10,6 +10,7 @@ const {
   getMyQuestionnaire,
   getMyCidValues,
   deleteQuestionnaireEntry,
+  verifyPassword,
 } = require("../controllers/userController");
 const auth = require("../middleware/authMiddleware");
 
@@ -25,5 +26,6 @@ router.post("/questionnaire", auth, addQuestionnaireEntry);
 router.get("/questionnaire", auth, getMyQuestionnaire);
 router.get("/all-cids", auth, getMyCidValues);
 router.delete("/questionnaire", auth, deleteQuestionnaireEntry);
+router.post("/verify-password", auth, verifyPassword);
 
 module.exports = router;

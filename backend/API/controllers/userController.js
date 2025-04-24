@@ -157,3 +157,20 @@ exports.getMyQuestionnaire = async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+exports.verifyPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ msg: "Password is required" });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ msg: "Invalid password" });
+
+    res.json({ msg: "Password verified" });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
