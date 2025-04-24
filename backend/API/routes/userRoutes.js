@@ -22,6 +22,6 @@ router.post("/add-cid", auth, addCid);
 router.get("/check-cid", auth, checkCid);
 router.post("/questionnaire", auth, saveQuestionnaire);
 router.get("/questionnaire", auth, getQuestionnaire);
-router.get('/all-cids', getAllCidValues);
+router.get("/all-cids", getAllCidValues);
 
 module.exports = router;
