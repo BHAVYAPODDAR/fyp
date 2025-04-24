@@ -4,39 +4,8 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 const Dashboard = () => {
-  const [wills, setWills] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
-
-  useEffect(() => {
-    const fetchCid = async () => {
-      console.log(token);
-      if (!token) {
-        console.error("No token found");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const res = await axios.get(
-          "http://localhost:5000/api/users/all-cids",
-          {
-            headers: {
-              Authorization: `${token}`,
-            },
-          }
-        );
-        setWills(res.data || []);
-      } catch (err) {
-        console.error("Error fetching cid:", err);
-        setWills([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCid();
-  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
