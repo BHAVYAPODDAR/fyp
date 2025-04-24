@@ -98,22 +98,34 @@ exports.checkCid = async (req, res) => {
   }
 };
 
-exports.saveQuestionnaire = async (req, res) => {
-  const { questionnaire } = req.body;
+exports.addQuestionnaireEntry = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    user.questionnaire = questionnaire;
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const { entry } = req.body; // new questionnaire object
+    const nextSr = user.questionnaire.length + 1;
+
+    const newEntry = { sr: nextSr, ...entry };
+
+    user.questionnaire.push(newEntry);
     await user.save();
     res.json({ msg: "Questionnaire saved", questionnaire: user.questionnaire });
+
+    res.json({ msg: "Entry added", questionnaire: user.questionnaire });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
 };
 
-exports.getQuestionnaire = async (req, res) => {
+exports.getUserQuestionnaire = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    res.json({ questionnaire: user.questionnaire || {} });
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).select("questionnaire");
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json({ questionnaire: user.questionnaire || [] });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }

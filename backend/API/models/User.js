@@ -15,8 +15,8 @@ const userSchema = new mongoose.Schema({
     default: [],
   },
   questionnaire: {
-    type: mongoose.Schema.Types.Mixed, // allows anything nested
-    default: {},
+    type: [mongoose.Schema.Types.Mixed], // array of anything
+    default: [],
   },
 });
 
