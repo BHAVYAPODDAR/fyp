@@ -42,6 +42,27 @@ const Dashboard = () => {
     fetchCid();
   }, []);
 
+  const handleDelete = async (submissionTimestamp) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:5000/api/users/questionnaire/${submissionTimestamp}`,
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+
+      // Update UI
+      setWills((prev) =>
+        prev.filter((will) => will.submissionTimestamp !== submissionTimestamp)
+      );
+    } catch (error) {
+      console.error("Failed to delete will:", error);
+    }
+  };
+
   const handleView = (will) => {
     navigate("/questions", { state: { formData: will } });
   };
@@ -97,53 +118,64 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {wills.map((will, index) => (
             <div
-              key={will[index]}
-              className="bg-white rounded-xl shadow-md p-5 flex flex-col justify-between"
+              key={will.sr}
+              className="bg-white rounded-xl shadow-md p-5 flex flex-col justify-between relative"
             >
+              {/* ❌ Delete Button - Top Right */}
+              <button
+                onClick={() => handleDelete(will.submissionTimestamp)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                title="Delete Will"
+              >
+                &#x2716;
+              </button>
+
+              {/* 📝 Will Info */}
               <div>
                 <h3 className="font-bold text-lg">
-                  {"Will No: " + will[index] || "Untitled Will"}
+                  {"Will No: " + will.sr || "Untitled Will"}
                 </h3>
                 <p className="text-gray-500 text-sm mb-2">
                   Created:{" "}
                   {new Date(will.submissionTimestamp).toLocaleDateString()}
                 </p>
+                <p className="text-gray-500 text-sm mb-2">
+                  Time:{" "}
+                  {new Date(will.submissionTimestamp).toLocaleTimeString()}
+                </p>
                 <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                   {will.status || "Draft"}
                 </span>
 
-                {/* CID Display */}
                 {will.cid && (
                   <p className="text-gray-400 text-xs truncate mt-2">
                     CID: {will.cid}
                   </p>
                 )}
-
-                {/* Progress Bar (static 70% for now) */}
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full"
-                    style={{ width: "70%" }}
-                  ></div>
-                </div>
               </div>
 
-              <div className="flex justify-between items-center mt-4">
+              {/* 📦 Buttons Section */}
+              <div className="flex items-center justify-between mt-4">
+                {/* Left: View + Edit */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleView(will)}
+                    className="bg-blue-100 text-blue-800 px-4 py-1 rounded-md text-sm hover:bg-blue-200"
+                  >
+                    View
+                  </button>
+                  <button
+                    // onClick={() => handleEdit(will)}
+                    className="bg-yellow-100 text-yellow-800 px-4 py-1 rounded-md text-sm hover:bg-yellow-200"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                {/* Right: Finalize */}
                 <button
-                  onClick={() => handleView(will)}
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  View
-                </button>
-                <button
-                  onClick={() => console.log("Edit", will._id)}
-                  className="text-yellow-600 text-sm hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => console.log("Finalize", will._id)}
-                  className="text-green-600 text-sm hover:underline"
+                  // onClick={() => handleFinalize(will)}
+                  className="bg-green-100 text-green-800 px-4 py-1 rounded-md text-sm hover:bg-green-200"
                 >
                   Finalize
                 </button>

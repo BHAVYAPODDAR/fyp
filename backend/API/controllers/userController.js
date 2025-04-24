@@ -123,7 +123,7 @@ exports.addQuestionnaireEntry = async (req, res) => {
 
 exports.deleteQuestionnaireEntry = async (req, res) => {
   try {
-    const { timestamp } = req.body; // string timestamp
+    const { timestamp } = req.params; // string timestamp
 
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
@@ -139,14 +139,14 @@ exports.deleteQuestionnaireEntry = async (req, res) => {
     }
 
     await user.save();
-    res.json({ msg: "Questionnaire entry deleted", questionnaire: user.questionnaire });
+    res.json({
+      msg: "Questionnaire entry deleted",
+      questionnaire: user.questionnaire,
+    });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
 };
-
-
-
 
 exports.getMyQuestionnaire = async (req, res) => {
   try {
