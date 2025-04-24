@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // add at top
 
 const Dashboard = () => {
   const [wills, setWills] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCid = async () => {
@@ -26,7 +29,8 @@ const Dashboard = () => {
             },
           }
         );
-        setWills(res.data || []);
+        setWills(res.data.questionnaire || []);
+        console.log(res.data.questionnaire);
       } catch (err) {
         console.error("Error fetching cid:", err);
         setWills([]);
@@ -37,6 +41,10 @@ const Dashboard = () => {
 
     fetchCid();
   }, []);
+
+  const handleView = (will) => {
+    navigate("/questions", { state: { formData: will } });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -87,17 +95,18 @@ const Dashboard = () => {
         <p className="text-gray-500">You haven’t created any wills yet.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {wills.map((will) => (
+          {wills.map((will, index) => (
             <div
-              key={will._id}
+              key={will[index]}
               className="bg-white rounded-xl shadow-md p-5 flex flex-col justify-between"
             >
               <div>
                 <h3 className="font-bold text-lg">
-                  {will.title || "Untitled Will"}
+                  {"Will No: " + will[index] || "Untitled Will"}
                 </h3>
                 <p className="text-gray-500 text-sm mb-2">
-                  Created: {new Date(will.createdAt).toLocaleDateString()}
+                  Created:{" "}
+                  {new Date(will.submissionTimestamp).toLocaleDateString()}
                 </p>
                 <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                   {will.status || "Draft"}
@@ -121,7 +130,7 @@ const Dashboard = () => {
 
               <div className="flex justify-between items-center mt-4">
                 <button
-                  onClick={() => console.log("View", will._id)}
+                  onClick={() => handleView(will)}
                   className="text-blue-600 text-sm hover:underline"
                 >
                   View

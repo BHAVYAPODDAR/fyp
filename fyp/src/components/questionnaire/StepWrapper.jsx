@@ -8,6 +8,7 @@ import {
 } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useLocation } from "react-router-dom";
 
 import Step1_PersonalInfo from "./Step1_PersonalInfo";
 import Step2_FamilyInfo from "./Step2_FamilyInfo";
@@ -38,8 +39,14 @@ const stepComponents = [
 ];
 
 const StepWrapper = () => {
+  const location = useLocation();
   const [activeStep, setActiveStep] = useState(0);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(
+    location.state?.formData
+      ? { ...location.state.formData, submissionTimestamp: undefined }
+      : {}
+  );
+
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const stepRef = useRef(null);
