@@ -1,147 +1,71 @@
-// // src/Dashboard/Dashboard.js
-
-// import React, { useEffect, useState } from "react";
-// import { Button } from "@mui/material";
-// import { Link } from "react-router-dom";
-// import axios from "axios";
-
-// const Dashboard = () => {
-//   const [wills, setWills] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const token = localStorage.getItem("token");
-
-//   useEffect(() => {
-//     const fetchAllWills = async () => {
-//       try {
-//         const res = await axios.get(
-//           "http://localhost:5000/api/users/all-cids",
-//           {
-//             headers: {
-//               Authorization: `Bearer ${token}`,
-//             },
-//           }
-//         );
-//         setWills(res.data);
-//       } catch (err) {
-//         console.error("Error fetching all wills:", err);
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchAllWills();
-//   }, [token]);
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-8">
-//       {/* Header */}
-//       <div className="flex justify-between items-center mb-6">
-//         <div>
-//           <h1 className="text-3xl font-bold">Welcome, Bhavya 👋</h1>
-//           <p className="text-gray-500 text-sm mt-1">
-//             Your legacy is just a few clicks away.
-//           </p>
-//         </div>
-
-//         <Link to="/questions">
-//           <Button
-//             variant="contained"
-//             style={{ backgroundColor: "#4CAF50", textTransform: "none" }}
-//           >
-//             + Create New Will
-//           </Button>
-//         </Link>
-//       </div>
-
-//       {/* My Wills */}
-//       <h2 className="text-xl font-semibold mb-4">Your Wills</h2>
-//       {loading ? (
-//         <p>Loading your wills...</p>
-//       ) : wills.length === 0 ? (
-//         <p className="text-gray-500">You haven’t created any wills yet.</p>
-//       ) : (
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//           {wills.map((will) => (
-//             <div
-//               key={will._id}
-//               className="bg-white rounded-xl shadow-md p-5 flex flex-col justify-between"
-//             >
-//               <div>
-//                 <h3 className="font-bold text-lg">
-//                   {will.title || "Untitled Will"}
-//                 </h3>
-//                 <p className="text-gray-500 text-sm mb-2">
-//                   Created: {new Date(will.createdAt).toLocaleDateString()}
-//                 </p>
-//                 <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-//                   {will.status || "Draft"}
-//                 </span>
-//               </div>
-
-//               <div className="flex justify-between items-center mt-4">
-//                 <button
-//                   onClick={() => console.log("View", will._id)}
-//                   className="text-blue-600 text-sm hover:underline"
-//                 >
-//                   View
-//                 </button>
-//                 <button
-//                   onClick={() => console.log("Edit", will._id)}
-//                   className="text-yellow-600 text-sm hover:underline"
-//                 >
-//                   Edit
-//                 </button>
-//                 <button
-//                   onClick={() => console.log("Finalize", will._id)}
-//                   className="text-green-600 text-sm hover:underline"
-//                 >
-//                   Finalize
-//                 </button>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default Dashboard;
-
-// src/Dashboard/Dashboard.js
-
 import React, { useEffect, useState } from "react";
 import { Button } from "@mui/material";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // add at top
 
 const Dashboard = () => {
   const [wills, setWills] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
 
+  const navigate = useNavigate();
+
   useEffect(() => {
-    const fetchAllWills = async () => {
+    const fetchCid = async () => {
+      console.log(token);
+      if (!token) {
+        console.error("No token found");
+        setLoading(false);
+        return;
+      }
+
       try {
         const res = await axios.get(
-          "http://localhost:5000/api/users/all-cids",
+          "http://localhost:5000/api/users/questionnaire",
           {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `${token}`,
             },
           }
         );
-        setWills(res.data);
-        console.log(wills);
+        setWills(res.data.questionnaire || []);
+        console.log(res.data.questionnaire);
       } catch (err) {
-        console.error("Error fetching all wills:", err);
+        console.error("Error fetching cid:", err);
+        setWills([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllWills();
-  }, [token]);
+    fetchCid();
+  }, []);
+
+  const handleDelete = async (submissionTimestamp) => {
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(
+        `http://localhost:5000/api/users/questionnaire/${submissionTimestamp}`,
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+
+      // Update UI
+      setWills((prev) =>
+        prev.filter((will) => will.submissionTimestamp !== submissionTimestamp)
+      );
+    } catch (error) {
+      console.error("Failed to delete will:", error);
+    }
+  };
+
+  const handleView = (will) => {
+    navigate("/questions", { state: { formData: will } });
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -192,54 +116,66 @@ const Dashboard = () => {
         <p className="text-gray-500">You haven’t created any wills yet.</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {wills.map((will) => (
+          {wills.map((will, index) => (
             <div
-              key={will._id}
-              className="bg-white rounded-xl shadow-md p-5 flex flex-col justify-between"
+              key={will.sr}
+              className="bg-white rounded-xl shadow-md p-5 flex flex-col justify-between relative"
             >
+              {/* ❌ Delete Button - Top Right */}
+              <button
+                onClick={() => handleDelete(will.submissionTimestamp)}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                title="Delete Will"
+              >
+                &#x2716;
+              </button>
+
+              {/* 📝 Will Info */}
               <div>
                 <h3 className="font-bold text-lg">
-                  {will.title || "Untitled Will"}
+                  {"Will No: " + will.sr || "Untitled Will"}
                 </h3>
                 <p className="text-gray-500 text-sm mb-2">
-                  Created: {new Date(will.createdAt).toLocaleDateString()}
+                  Created:{" "}
+                  {new Date(will.submissionTimestamp).toLocaleDateString()}
+                </p>
+                <p className="text-gray-500 text-sm mb-2">
+                  Time:{" "}
+                  {new Date(will.submissionTimestamp).toLocaleTimeString()}
                 </p>
                 <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                   {will.status || "Draft"}
                 </span>
 
-                {/* CID Display */}
                 {will.cid && (
                   <p className="text-gray-400 text-xs truncate mt-2">
                     CID: {will.cid}
                   </p>
                 )}
-
-                {/* Progress Bar (static 70% for now) */}
-                <div className="w-full bg-gray-200 rounded-full h-2.5 mt-4">
-                  <div
-                    className="bg-blue-600 h-2.5 rounded-full"
-                    style={{ width: "70%" }}
-                  ></div>
-                </div>
               </div>
 
-              <div className="flex justify-between items-center mt-4">
+              {/* 📦 Buttons Section */}
+              <div className="flex items-center justify-between mt-4">
+                {/* Left: View + Edit */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleView(will)}
+                    className="bg-blue-100 text-blue-800 px-4 py-1 rounded-md text-sm hover:bg-blue-200"
+                  >
+                    View
+                  </button>
+                  <button
+                    // onClick={() => handleEdit(will)}
+                    className="bg-yellow-100 text-yellow-800 px-4 py-1 rounded-md text-sm hover:bg-yellow-200"
+                  >
+                    Edit
+                  </button>
+                </div>
+
+                {/* Right: Finalize */}
                 <button
-                  onClick={() => console.log("View", will._id)}
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  View
-                </button>
-                <button
-                  onClick={() => console.log("Edit", will._id)}
-                  className="text-yellow-600 text-sm hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => console.log("Finalize", will._id)}
-                  className="text-green-600 text-sm hover:underline"
+                  // onClick={() => handleFinalize(will)}
+                  className="bg-green-100 text-green-800 px-4 py-1 rounded-md text-sm hover:bg-green-200"
                 >
                   Finalize
                 </button>

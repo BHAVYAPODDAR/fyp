@@ -22,22 +22,53 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
     specialRequests,
   } = formData;
 
+  // const handleFinalSubmit = async () => {
+  //   try {
+  //     const token = localStorage.getItem("token"); // make sure token is stored at login
+
+  //     const response = await axios.post(
+  //       "http://localhost:5000/api/users/questionnaire",
+  //       { questionnaire: formData }, // posting the entire formData object
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     alert("✅ Will successfully created!");
+  //     console.log(response.data); // optional: for debugging or toast
+  //   } catch (error) {
+  //     console.error(
+  //       "❌ Error submitting will:",
+  //       error.response?.data || error.message
+  //     );
+  //     alert("Failed to submit the Will. Please try again.");
+  //   }
+  // };
+
   const handleFinalSubmit = async () => {
     try {
-      const token = localStorage.getItem("token"); // make sure token is stored at login
+      const token = localStorage.getItem("token");
 
+      const formDataWithTimestamp = {
+        ...formData,
+        submissionTimestamp: new Date().toISOString(),
+      };
+
+      // ✅ Send under the 'entry' key to match backend controller
       const response = await axios.post(
         "http://localhost:5000/api/users/questionnaire",
-        { questionnaire: formData }, // posting the entire formData object
+        { entry: formDataWithTimestamp }, // fixed line
         {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `${token}`,
           },
         }
       );
 
       alert("✅ Will successfully created!");
-      console.log(response.data); // optional: for debugging or toast
+      console.log(response.data);
     } catch (error) {
       console.error(
         "❌ Error submitting will:",

@@ -28,12 +28,13 @@ app.post("/upload", async (req, res) => {
     const ipfsHash = await uploadFileToIPFS(filePath);
     await storeFileOnBlockchain(ipfsHash, filePath);
 
-    res.json({ message: "File uploaded and stored", ipfsHash });
+    res.json({ message: "File uploaded and stored", cid: ipfsHash });
   } catch (err) {
     console.error(err);
     res.status(500).send("Error uploading file");
   }
 });
+
 
 // GET /retrieve/:cid
 app.get("/retrieve/:cid", async (req, res) => {

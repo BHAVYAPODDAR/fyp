@@ -75,19 +75,13 @@ exports.addCid = async (req, res) => {
 //   }
 // };
 
-exports.getAllCidValues = async (req, res) => {
+exports.getMyCidValues = async (req, res) => {
   try {
-    const users = await User.find({}, "cid"); // Get only the cid field
+    const user = await User.findById(req.user.id).select("cid");
 
-    const allCIDs = users.flatMap((user) =>
-      user.cid.map((item) => ({
-        userId: user._id,
-        name: item.name,
-        cid_value: item.cid_value,
-      }))
-    );
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
-    res.json(allCIDs);
+    res.json(user.cid);
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
@@ -104,22 +98,79 @@ exports.checkCid = async (req, res) => {
   }
 };
 
-exports.saveQuestionnaire = async (req, res) => {
-  const { questionnaire } = req.body;
+exports.addQuestionnaireEntry = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    user.questionnaire = questionnaire;
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const { entry } = req.body;
+
+    // Ensure sr is not taken from frontend
+    const cleanedEntry = { ...entry };
+    delete cleanedEntry.sr;
+
+    const nextSr = user.questionnaire.length + 1;
+    const newEntry = { sr: nextSr, ...cleanedEntry };
+
+    user.questionnaire.push(newEntry);
     await user.save();
-    res.json({ msg: "Questionnaire saved", questionnaire: user.questionnaire });
+
+    res.json({ msg: "Entry added", questionnaire: user.questionnaire });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
 };
 
-exports.getQuestionnaire = async (req, res) => {
+exports.deleteQuestionnaireEntry = async (req, res) => {
   try {
+    const { timestamp } = req.params; // string timestamp
+
     const user = await User.findById(req.user.id);
-    res.json({ questionnaire: user.questionnaire || {} });
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Filter out the entry by direct string comparison
+    const originalLength = user.questionnaire.length;
+    user.questionnaire = user.questionnaire.filter(
+      (entry) => entry.submissionTimestamp !== timestamp
+    );
+
+    if (user.questionnaire.length === originalLength) {
+      return res.status(404).json({ msg: "No matching questionnaire found" });
+    }
+
+    await user.save();
+    res.json({
+      msg: "Questionnaire entry deleted",
+      questionnaire: user.questionnaire,
+    });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.getMyQuestionnaire = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("questionnaire");
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json({ questionnaire: user.questionnaire || [] });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.verifyPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ msg: "Password is required" });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) return res.status(401).json({ msg: "Invalid password" });
+
+    res.json({ msg: "Password verified" });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
