@@ -121,6 +121,32 @@ exports.addQuestionnaireEntry = async (req, res) => {
   }
 };
 
+exports.deleteQuestionnaireEntry = async (req, res) => {
+  try {
+    const { timestamp } = req.body; // string timestamp
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    // Filter out the entry by direct string comparison
+    const originalLength = user.questionnaire.length;
+    user.questionnaire = user.questionnaire.filter(
+      (entry) => entry.submissionTimestamp !== timestamp
+    );
+
+    if (user.questionnaire.length === originalLength) {
+      return res.status(404).json({ msg: "No matching questionnaire found" });
+    }
+
+    await user.save();
+    res.json({ msg: "Questionnaire entry deleted", questionnaire: user.questionnaire });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+
+
 
 exports.getMyQuestionnaire = async (req, res) => {
   try {
