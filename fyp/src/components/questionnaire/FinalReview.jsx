@@ -51,12 +51,15 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
     try {
       const token = localStorage.getItem("token");
 
-      // 👇 Add timestamp to formData before sending
-      formData.submissionTimestamp = new Date().toISOString();
+      const formDataWithTimestamp = {
+        ...formData,
+        submissionTimestamp: new Date().toISOString(),
+      };
 
+      // ✅ Send under the 'entry' key to match backend controller
       const response = await axios.post(
         "http://localhost:5000/api/users/questionnaire",
-        { questionnaire: formData },
+        { entry: formDataWithTimestamp }, // fixed line
         {
           headers: {
             Authorization: `${token}`,

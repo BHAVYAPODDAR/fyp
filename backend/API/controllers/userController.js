@@ -110,7 +110,6 @@ exports.addQuestionnaireEntry = async (req, res) => {
 
     user.questionnaire.push(newEntry);
     await user.save();
-    res.json({ msg: "Questionnaire saved", questionnaire: user.questionnaire });
 
     res.json({ msg: "Entry added", questionnaire: user.questionnaire });
   } catch (err) {
