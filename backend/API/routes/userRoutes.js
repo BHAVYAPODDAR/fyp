@@ -6,7 +6,7 @@ const {
   addCid,
   replaceCid,
   checkCid,
-  saveQuestionnaire,
+  getUserQuestionnaire,
   getQuestionnaire,
   getMyCidValues,
 } = require("../controllers/userController");
@@ -20,7 +20,7 @@ router.get("/me", auth, getUserProfile);
 router.post("/add-cid", auth, addCid);
 // router.put("/replace-cid", auth, replaceCid);
 router.get("/check-cid", auth, checkCid);
-router.post("/questionnaire", auth, saveQuestionnaire);
+router.post("/questionnaire", auth, getUserQuestionnaire);
 router.get("/questionnaire", auth, getQuestionnaire);
 router.get("/all-cids", auth, getMyCidValues);
 

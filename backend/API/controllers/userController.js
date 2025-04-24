@@ -1,12 +1,12 @@
-const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 exports.registerUser = async (req, res) => {
   const { name, email, password } = req.body;
   try {
     let user = await User.findOne({ email });
-    if (user) return res.status(400).json({ msg: 'User already exists' });
+    if (user) return res.status(400).json({ msg: "User already exists" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     user = await User.create({ name, email, password: hashedPassword });
@@ -14,7 +14,7 @@ exports.registerUser = async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     res.status(201).json({ token });
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -22,24 +22,24 @@ exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ msg: 'Invalid credentials' });
+    if (!user) return res.status(400).json({ msg: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ msg: 'Invalid credentials' });
+    if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
 exports.getUserProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    const user = await User.findById(req.user.id).select("-password");
     res.json(user);
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
@@ -49,19 +49,18 @@ exports.addCid = async (req, res) => {
     const user = await User.findById(req.user.id);
 
     // Calculate next sr
-    const nextSr = user.cid.length > 0 ? user.cid[user.cid.length - 1].sr + 1 : 1;
+    const nextSr =
+      user.cid.length > 0 ? user.cid[user.cid.length - 1].sr + 1 : 1;
 
     // Push new CID entry
     user.cid.push({ sr: nextSr, cid_value });
 
     await user.save();
-    res.json({ msg: 'CID added successfully', cid: user.cid });
+    res.json({ msg: "CID added successfully", cid: user.cid });
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
-
-
 
 // exports.replaceCid = async (req, res) => {
 //   const { cid } = req.body;
@@ -77,46 +76,55 @@ exports.addCid = async (req, res) => {
 
 exports.getMyCidValues = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('cid');
+    const user = await User.findById(req.user.id).select("cid");
 
-    if (!user) return res.status(404).json({ msg: 'User not found' });
+    if (!user) return res.status(404).json({ msg: "User not found" });
 
     res.json(user.cid);
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
-
-
 
 exports.checkCid = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    if (!user.cid) return res.status(404).json({ msg: 'No CID found' });
+    if (!user.cid) return res.status(404).json({ msg: "No CID found" });
 
     res.json({ cid: user.cid });
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
-exports.saveQuestionnaire = async (req, res) => {
-  const { questionnaire } = req.body;
+exports.addQuestionnaireEntry = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
-    user.questionnaire = questionnaire;
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    const { entry } = req.body; // new questionnaire object
+    const nextSr = user.questionnaire.length + 1;
+
+    const newEntry = { sr: nextSr, ...entry };
+
+    user.questionnaire.push(newEntry);
     await user.save();
-    res.json({ msg: 'Questionnaire saved', questionnaire: user.questionnaire });
+
+    res.json({ msg: "Entry added", questionnaire: user.questionnaire });
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
-exports.getQuestionnaire = async (req, res) => {
+exports.getUserQuestionnaire = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
-    res.json({ questionnaire: user.questionnaire || {} });
+    const { userId } = req.params;
+
+    const user = await User.findById(userId).select("questionnaire");
+    if (!user) return res.status(404).json({ msg: "User not found" });
+
+    res.json({ questionnaire: user.questionnaire || [] });
   } catch (err) {
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: "Server error" });
   }
 };
