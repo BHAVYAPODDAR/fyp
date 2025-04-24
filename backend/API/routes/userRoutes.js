@@ -8,6 +8,7 @@ const {
   checkCid,
   saveQuestionnaire,
   getQuestionnaire,
+  getAllCidValues,
 } = require("../controllers/userController");
 const auth = require("../middleware/authMiddleware");
 
@@ -21,5 +22,6 @@ router.put("/replace-cid", auth, replaceCid);
 router.get("/check-cid", auth, checkCid);
 router.post("/questionnaire", auth, saveQuestionnaire);
 router.get("/questionnaire", auth, getQuestionnaire);
+router.get('/all-cids', getAllCidValues);
 
 module.exports = router;
