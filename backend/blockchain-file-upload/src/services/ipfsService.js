@@ -11,7 +11,7 @@ const { Blob } = require("buffer");
 const path = require("path");
 
 const pinata1 = new PinataSDK({
-  pinataJwt: process.env.JWT_Access,
+  pinataJwt: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySW5mb3JtYXRpb24iOnsiaWQiOiI2YzNjMzdjNy1hNmYzLTRiNTYtYjQxOS0wNzI0NGM3MDUyMjgiLCJlbWFpbCI6ImJvb2tzYXJlbGlmZTExNzdAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsInBpbl9wb2xpY3kiOnsicmVnaW9ucyI6W3siZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiRlJBMSJ9LHsiZGVzaXJlZFJlcGxpY2F0aW9uQ291bnQiOjEsImlkIjoiTllDMSJ9XSwidmVyc2lvbiI6MX0sIm1mYV9lbmFibGVkIjpmYWxzZSwic3RhdHVzIjoiQUNUSVZFIn0sImF1dGhlbnRpY2F0aW9uVHlwZSI6InNjb3BlZEtleSIsInNjb3BlZEtleUtleSI6ImQwNjY1MzExMTgxZThiNWU2NzE1Iiwic2NvcGVkS2V5U2VjcmV0IjoiNzkwZWQ3Y2JkZGUyOGMwY2Y3NjY4MjE0MDY0OTg0YjAzOThhNmY0OWRiNzJhYjA2YzNkYzNhY2ZjYjE5MWVhYiIsImV4cCI6MTc3NjY3NTc5Nn0.MVvKg2DHAuw4UC1Bg1-1w_SbH9kYLD_NNnZW49cHdwY",
   pinataGateway: "chocolate-payable-unicorn-130.mypinata.cloud",
 });
 
@@ -35,45 +35,3 @@ const uploadFileToIPFS = async (filePath) => {
 module.exports = {
   uploadFileToIPFS,
 };
-
-// const uploadFileToIPFS = async (file) => {
-//     try {
-//         const result = await pinata.pinFileToIPFS(file);
-//         return result.IpfsHash;
-//     } catch (error) {
-//         throw new Error('Failed to upload file to IPFS');
-//     }
-// };
-
-// module.exports = {
-//     uploadFileToIPFS
-// };
-
-// const axios = require('axios');
-// const fs = require('fs');
-// const FormData = require('form-data');
-// require('dotenv').config(); // To load environment variables from a .env file
-
-// const uploadFileToIPFS = async (filePath) => {
-//   try {
-//     const form = new FormData();
-//     form.append('file', fs.createReadStream(filePath));
-
-//     const response = await axios.post('https://api.pinata.cloud/pinning/pinFileToIPFS', form, {
-//       headers: {
-//         ...form.getHeaders(),
-//         pinata_api_key: process.env.PINATA_API_KEY,
-//         pinata_secret_api_key: process.env.PINATA_SECRET_API_KEY,
-//       },
-//     });
-
-//     return response.data.IpfsHash;
-//   } catch (error) {
-//     console.error("Error uploading to IPFS:", error);
-//     throw error;  // Propagate the error for further handling
-//   }
-// };
-
-// module.exports = { uploadFileToIPFS };
-
-
