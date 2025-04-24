@@ -45,16 +45,20 @@ exports.getUserProfile = async (req, res) => {
 };
 
 exports.addCid = async (req, res) => {
-  const { cid } = req.body;
+  const { cid_value } = req.body;
   try {
     const user = await User.findById(req.user.id);
     if (user.cid)
       return res
         .status(400)
         .json({ msg: "CID already exists. Use replace endpoint." });
+    const nextSr =
+      user.cid.length > 0 ? user.cid[user.cid.length - 1].sr + 1 : 1;
 
-    user.cid = cid;
+    user.cid.push({ sr: nextSr, cid_value });
     await user.save();
+    res.json({ msg: "CID added successfully", cid: user.cid });
+
     res.json({ msg: "CID added successfully", cid: user.cid });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
@@ -68,6 +72,24 @@ exports.replaceCid = async (req, res) => {
     user.cid = cid;
     await user.save();
     res.json({ msg: "CID replaced successfully", cid: user.cid });
+  } catch (err) {
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.getAllCidValues = async (req, res) => {
+  try {
+    const users = await User.find({}, "cid"); // Get only the cid field
+
+    const allCIDs = users.flatMap((user) =>
+      user.cid.map((item) => ({
+        userId: user._id,
+        name: item.name,
+        cid_value: item.cid_value,
+      }))
+    );
+
+    res.json(allCIDs);
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }
