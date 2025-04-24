@@ -116,11 +116,9 @@ exports.addQuestionnaireEntry = async (req, res) => {
   }
 };
 
-exports.getUserQuestionnaire = async (req, res) => {
+exports.getMyQuestionnaire = async (req, res) => {
   try {
-    const { userId } = req.params;
-
-    const user = await User.findById(userId).select("questionnaire");
+    const user = await User.findById(req.user.id).select("questionnaire");
     if (!user) return res.status(404).json({ msg: "User not found" });
 
     res.json({ questionnaire: user.questionnaire || [] });
