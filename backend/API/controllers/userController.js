@@ -103,10 +103,14 @@ exports.addQuestionnaireEntry = async (req, res) => {
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ msg: "User not found" });
 
-    const { entry } = req.body; // new questionnaire object
-    const nextSr = user.questionnaire.length + 1;
+    const { entry } = req.body;
 
-    const newEntry = { sr: nextSr, ...entry };
+    // Ensure sr is not taken from frontend
+    const cleanedEntry = { ...entry };
+    delete cleanedEntry.sr;
+
+    const nextSr = user.questionnaire.length + 1;
+    const newEntry = { sr: nextSr, ...cleanedEntry };
 
     user.questionnaire.push(newEntry);
     await user.save();
@@ -116,6 +120,7 @@ exports.addQuestionnaireEntry = async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 };
+
 
 exports.getMyQuestionnaire = async (req, res) => {
   try {
