@@ -6,8 +6,8 @@ const {
   addCid,
   replaceCid,
   checkCid,
+  addQuestionnaireEntry,
   getUserQuestionnaire,
-  getQuestionnaire,
   getMyCidValues,
 } = require("../controllers/userController");
 const auth = require("../middleware/authMiddleware");
@@ -20,8 +20,8 @@ router.get("/me", auth, getUserProfile);
 router.post("/add-cid", auth, addCid);
 // router.put("/replace-cid", auth, replaceCid);
 router.get("/check-cid", auth, checkCid);
-router.post("/questionnaire", auth, getUserQuestionnaire);
-router.get("/questionnaire", auth, getQuestionnaire);
+router.post("/questionnaire", auth, addQuestionnaireEntry);
+router.get("/questionnaire", auth, getUserQuestionnaire);
 router.get("/all-cids", auth, getMyCidValues);
 
 module.exports = router;
