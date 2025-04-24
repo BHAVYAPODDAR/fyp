@@ -75,23 +75,18 @@ exports.addCid = async (req, res) => {
 //   }
 // };
 
-exports.getAllCidValues = async (req, res) => {
+exports.getMyCidValues = async (req, res) => {
   try {
-    const users = await User.find({}, 'cid'); // Get only the cid field
+    const user = await User.findById(req.user.id).select('cid');
 
-    const allCIDs = users.flatMap(user =>
-      user.cid.map(item => ({
-        userId: user._id,
-        name: item.name,
-        cid_value: item.cid_value
-      }))
-    );
+    if (!user) return res.status(404).json({ msg: 'User not found' });
 
-    res.json(allCIDs);
+    res.json(user.cid);
   } catch (err) {
     res.status(500).json({ msg: 'Server error' });
   }
 };
+
 
 
 exports.checkCid = async (req, res) => {
