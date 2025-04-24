@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
+  name: { type: String },
   email: { type: String, unique: true, required: true },
   password: { type: String, required: true },
   walletAddress: { type: String },
@@ -10,10 +10,10 @@ const userSchema = new mongoose.Schema({
       {
         sr: { type: Number, required: true },
         cid_value: { type: String, required: true },
-      }
+      },
     ],
-    default: []
-  },  
+    default: [],
+  },
   questionnaire: {
     type: mongoose.Schema.Types.Mixed, // allows anything nested
     default: {},
