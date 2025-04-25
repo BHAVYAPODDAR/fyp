@@ -98,6 +98,32 @@ const Dashboard = () => {
     navigate("/questions", { state: { formData: will } });
   };
 
+  const handleFinalize = async (cid) => {
+    try {
+      const response = await fetch(`http://localhost:5001/retrieve/${cid}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to retrieve the PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${cid}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error during finalization:", error);
+      alert("⚠️ Failed to finalize and download the Will.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       {/* Header */}
@@ -208,7 +234,11 @@ const Dashboard = () => {
 
                 {/* Right: Finalize */}
                 <button
-                  // onClick={() => handleFinalize(will)}
+                  onClick={() =>
+                    handleFinalize(
+                      "bafkreigumarbibbmaqz5ftvgv2nt73xbch3iuy3s2gyv76ej3skmvqs72e"
+                    )
+                  }
                   className="bg-green-100 text-green-800 px-4 py-1 rounded-md text-sm hover:bg-green-200"
                 >
                   Finalize

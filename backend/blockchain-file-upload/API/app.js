@@ -1,4 +1,6 @@
 const express = require("express");
+const os = require("os");
+
 const fileUpload = require("express-fileupload");
 const { uploadFileToIPFS } = require("../src/services/ipfsService");
 const {
@@ -35,12 +37,12 @@ app.post("/upload", async (req, res) => {
   }
 });
 
-
 // GET /retrieve/:cid
 app.get("/retrieve/:cid", async (req, res) => {
   try {
     const { cid } = req.params;
-    const outputPath = path.join(__dirname, "../downloads", `${cid}.pdf`);
+    const downloadsFolder = path.join(os.homedir(), "Downloads");
+    const outputPath = path.join(downloadsFolder, `${cid}.pdf`);
 
     // Retrieve the file from IPFS (assume it writes to disk)
     await retrieveFileFromPinata(cid, outputPath);
