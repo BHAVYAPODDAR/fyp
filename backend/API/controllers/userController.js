@@ -109,10 +109,8 @@ exports.addQuestionnaireEntry = async (req, res) => {
     const cleanedEntry = { ...entry };
     delete cleanedEntry.sr;
 
-    const nextSr =
-      user.questionnaire.length > 0
-        ? Math.max(...user.questionnaire.map(q => q.sr)) + 1
-        : 1;
+    const lastSr = user.questionnaire[user.questionnaire.length - 1]?.sr || 0;
+    const nextSr = lastSr + 1;
 
     const newEntry = { sr: nextSr, ...cleanedEntry };
 
