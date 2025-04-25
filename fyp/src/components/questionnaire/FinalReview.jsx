@@ -1,4 +1,5 @@
 import React from "react";
+import { useState } from "react";
 import {
   Button,
   Typography,
@@ -22,33 +23,12 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
     specialRequests,
   } = formData;
 
-  // const handleFinalSubmit = async () => {
-  //   try {
-  //     const token = localStorage.getItem("token"); // make sure token is stored at login
-
-  //     const response = await axios.post(
-  //       "http://localhost:5000/api/users/questionnaire",
-  //       { questionnaire: formData }, // posting the entire formData object
-  //       {
-  //         headers: {
-  //           Authorization: `Bearer ${token}`,
-  //         },
-  //       }
-  //     );
-
-  //     alert("✅ Will successfully created!");
-  //     console.log(response.data); // optional: for debugging or toast
-  //   } catch (error) {
-  //     console.error(
-  //       "❌ Error submitting will:",
-  //       error.response?.data || error.message
-  //     );
-  //     alert("Failed to submit the Will. Please try again.");
-  //   }
-  // };
+  const [generatedWill, setGeneratedWill] = useState(null);
+  const [loadingWill, setLoadingWill] = useState(false);
 
   const handleFinalSubmit = async () => {
     try {
+      setLoadingWill(true);
       const token = localStorage.getItem("token");
 
       const formDataWithTimestamp = {
@@ -56,25 +36,39 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
         submissionTimestamp: new Date().toISOString(),
       };
 
-      // ✅ Send under the 'entry' key to match backend controller
-      const response = await axios.post(
+      // 1️⃣ Send to your own backend to save in DB
+      const saveResponse = await axios.post(
         "http://localhost:5000/api/users/questionnaire",
-        { entry: formDataWithTimestamp }, // fixed line
+        { entry: formDataWithTimestamp },
         {
           headers: {
             Authorization: `${token}`,
           },
         }
       );
+      console.log("✅ Will saved to DB:", saveResponse.data);
+      console.log(formDataWithTimestamp);
 
-      alert("✅ Will successfully created!");
-      console.log(response.data);
+      // 2️⃣ Send to ngrok API to generate the Will content
+      const generateResponse = await axios.post(
+        "https://fa64-14-139-125-231.ngrok-free.app/generate-will", // replace with your real ngrok URL
+        { entry: formDataWithTimestamp },
+        {
+          headers: {
+            Authorization: `${token}`,
+          },
+        }
+      );
+      setGeneratedWill(generateResponse.data.generatedWill); // assuming response contains: { generatedWill: "Will text or HTML" }
+      alert("✅ Will successfully created and generated!");
     } catch (error) {
       console.error(
-        "❌ Error submitting will:",
+        "❌ Error submitting or generating will:",
         error.response?.data || error.message
       );
-      alert("Failed to submit the Will. Please try again.");
+      alert("Failed to submit or generate the Will. Please try again.");
+    } finally {
+      setLoadingWill(false);
     }
   };
 
@@ -246,9 +240,29 @@ const FinalReview = ({ formData, updateFormData, goBackToStep }) => {
           onClick={handleFinalSubmit}
           size="large"
         >
-          Confirm and Submit Will
+          Generate Will
         </Button>
       </Box>
+
+      {loadingWill && (
+        <Typography variant="body1" className="text-blue-600 mt-6">
+          Generating your Will document, please wait...
+        </Typography>
+      )}
+
+      {generatedWill && (
+        <Box className="bg-white p-6 mt-6 rounded shadow-md border border-gray-200">
+          <Typography variant="h6" className="text-gray-800 mb-4">
+            📝 Generated Will
+          </Typography>
+          <Typography
+            variant="body1"
+            className="whitespace-pre-wrap text-gray-700"
+          >
+            {generatedWill}
+          </Typography>
+        </Box>
+      )}
 
       {/* PDF */}
       <Box className="space-y-4 mt-8">

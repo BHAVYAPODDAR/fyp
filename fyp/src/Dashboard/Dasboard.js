@@ -8,8 +8,39 @@ const Dashboard = () => {
   const [wills, setWills] = useState([]);
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem("token");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
 
   const navigate = useNavigate();
+
+  const confirmPasswordThenDelete = async () => {
+    const token = localStorage.getItem("token");
+    try {
+      // Step 1: Verify password
+      await axios.post(
+        "http://localhost:5000/api/users/verify-password",
+        { password: passwordInput },
+        { headers: { Authorization: token } }
+      );
+
+      // Step 2: Call original delete
+      await handleDelete(deleteTarget);
+
+      // Cleanup
+      setShowDeleteModal(false);
+      setPasswordInput("");
+      setDeleteError("");
+      setDeleteTarget(null);
+    } catch (err) {
+      if (err.response?.status === 401) {
+        setDeleteError("❌ Invalid password.");
+      } else {
+        setDeleteError("⚠️ Something went wrong. Try again.");
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchCid = async () => {
@@ -65,6 +96,32 @@ const Dashboard = () => {
 
   const handleView = (will) => {
     navigate("/questions", { state: { formData: will } });
+  };
+
+  const handleFinalize = async (cid) => {
+    try {
+      const response = await fetch(`http://localhost:5001/retrieve/${cid}`, {
+        method: "GET",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to retrieve the PDF");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${cid}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Error during finalization:", error);
+      alert("⚠️ Failed to finalize and download the Will.");
+    }
   };
 
   return (
@@ -123,7 +180,10 @@ const Dashboard = () => {
             >
               {/* ❌ Delete Button - Top Right */}
               <button
-                onClick={() => handleDelete(will.submissionTimestamp)}
+                onClick={() => {
+                  setDeleteTarget(will.submissionTimestamp);
+                  setShowDeleteModal(true);
+                }}
                 className="absolute top-2 right-2 text-red-500 hover:text-red-700"
                 title="Delete Will"
               >
@@ -174,7 +234,11 @@ const Dashboard = () => {
 
                 {/* Right: Finalize */}
                 <button
-                  // onClick={() => handleFinalize(will)}
+                  onClick={() =>
+                    handleFinalize(
+                      "bafkreigumarbibbmaqz5ftvgv2nt73xbch3iuy3s2gyv76ej3skmvqs72e"
+                    )
+                  }
                   className="bg-green-100 text-green-800 px-4 py-1 rounded-md text-sm hover:bg-green-200"
                 >
                   Finalize
@@ -204,6 +268,48 @@ const Dashboard = () => {
           </p>
         )}
       </div>
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-6 shadow-lg w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-3">Confirm Deletion</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Please enter your password to delete this will.
+            </p>
+
+            <input
+              type="password"
+              placeholder="Enter your password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-md mb-3"
+            />
+
+            {deleteError && (
+              <p className="text-sm text-red-500 mb-2">{deleteError}</p>
+            )}
+
+            <div className="flex justify-end space-x-3 mt-4">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setPasswordInput("");
+                  setDeleteError("");
+                  setDeleteTarget(null);
+                }}
+                className="text-gray-600 hover:underline"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmPasswordThenDelete}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Confirm Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

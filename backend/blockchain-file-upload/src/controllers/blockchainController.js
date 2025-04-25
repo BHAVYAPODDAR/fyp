@@ -15,12 +15,13 @@ const fileStorage = new web3.eth.Contract(FileStorage.abi, contractAddress);
 // };
 
 const storeFileOnBlockchain = async (hash, fileName) => {
-    const accounts = await web3.eth.getAccounts();
-    const tx = await fileStorage.methods.storeFile(hash, fileName).send({ from: accounts[0] });
-    console.log("Transaction Receipt:", tx);  // Debugging log
-    return tx; // Ensure function returns tx
+  const accounts = await web3.eth.getAccounts();
+  const tx = await fileStorage.methods
+    .storeFile(hash, fileName)
+    .send({ from: accounts[0] });
+  console.log("Transaction Receipt:", tx); // Debugging log
+  return tx; // Ensure function returns tx
 };
-
 
 const getFileFromBlockchain = async (index) => {
   return await fileStorage.methods.getFile(index).call();
@@ -40,19 +41,18 @@ const getFileFromBlockchain = async (index) => {
 // };
 
 const retrieveFileFromPinata = async (cid, outputPath) => {
-    try {
-        const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
-        const response = await axios.get(url, { responseType: "arraybuffer" });
+  try {
+    const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
+    const response = await axios.get(url, { responseType: "arraybuffer" });
 
-        // Save the file locally
-        fs.writeFileSync(outputPath, response.data);
-        console.log(`File downloaded successfully to ${outputPath}`);
-    } catch (error) {
-        console.error("Error retrieving file from Pinata:", error.message);
-        throw error;
-    }
+    // Save the file locally
+    fs.writeFileSync(outputPath, response.data);
+    console.log(`File downloaded successfully to ${outputPath}`);
+  } catch (error) {
+    console.error("Error retrieving file from Pinata:", error.message);
+    throw error;
+  }
 };
-
 
 module.exports = {
   storeFileOnBlockchain,
