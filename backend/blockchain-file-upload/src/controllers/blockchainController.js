@@ -27,19 +27,6 @@ const getFileFromBlockchain = async (index) => {
   return await fileStorage.methods.getFile(index).call();
 };
 
-// const retrieveFileFromPinata = async (cid) => {
-//     try {
-//         const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
-//         const response = await axios.get(url, { responseType: 'arraybuffer' });
-
-//         console.log("File retrieved successfully");
-//         return response.data;
-//     } catch (error) {
-//         console.error("Error retrieving file from Pinata:", error.message);
-//         throw error;
-//     }
-// };
-
 const retrieveFileFromPinata = async (cid, outputPath) => {
   try {
     const url = `https://gateway.pinata.cloud/ipfs/${cid}`;
